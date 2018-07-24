@@ -1,0 +1,13 @@
+version: "3"
+services:
+    bulk2mp3:
+        build: .
+        container_name: bulk2mp3
+        volumes:
+            - ./:/app
+        network_mode: host
+
+networks:
+    default:
+        external:
+            name: "host"
