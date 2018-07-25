@@ -23,24 +23,33 @@ class YoutubeBulkToMP3 {
     }
 
     async _convertToMp3(pos, totalLinks, outputArray) {
-        let found = outputArray.find(out => out.indexOf('[ffmpeg] Destination:') !== -1);
-        if (!found) {
-            found = outputArray.find(out => out.indexOf('[download] Destination:') !== -1);
+        const fileName = this._getFileName(outputArray);
+
+        if (fileName) {
+            let noExt = fileName.split('.');
+            noExt.pop();
+            noExt = noExt.join('.');
+
+            console.log(`Converting to MP3: ${pos + 1} of ${totalLinks}`);
+            await exec(`/usr/bin/ffmpeg -i "${fileName}" -b:a 192K -vn "${noExt}.mp3"`)
+            await unlink(`${__dirname}/${fileName}`);
         }
 
-        try {
-            if (found) {
-                const fileName = found.split(':')[1].trim();
-                let noExt = fileName.split('.');
-                noExt.pop();
-                noExt = noExt.join('.');
+    }
 
-                console.log(`Converting to MP3: ${pos + 1} of ${totalLinks}`);
-                await exec(`/usr/bin/ffmpeg -i "${fileName}" -b:a 192K -vn "${noExt}.mp3"`)
-                await unlink(`${__dirname}/${fileName}`);
+    _getFileName(outputArray) {
+        try {
+            let found = outputArray.find(out => out.indexOf('[ffmpeg] Destination:') !== -1);
+            if (!found) {
+                found = outputArray.find(out => out.indexOf('[download] Destination:') !== -1);
             }
+            if (found) {
+                return found.split(':')[1].trim();
+            }
+            return null;
         } catch (err) {
-            console.error(`Error originated by: ${found} - `, err);
+            console.error(`Error when trying to identify the fileName: `, err);
+            return null;
         }
     }
 
