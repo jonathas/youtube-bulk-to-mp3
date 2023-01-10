@@ -1,4 +1,4 @@
-FROM node:10.7.0-alpine
+FROM node:lts-alpine
 LABEL maintainer="Jon Ribeiro <contact@jonathas.com>"
 
 WORKDIR /app

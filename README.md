@@ -1,10 +1,10 @@
 # Youtube bulk to MP3
 
-This is a script that runs on Node.js, [youtube-dl](https://rg3.github.io/youtube-dl/) and [ffmpeg](https://ffmpeg.org/) to download a list of videos from Youtube and convert them to mp3.
+This is a script that runs on Node.js and uses [youtube-dl](https://rg3.github.io/youtube-dl/) to download a list of videos from Youtube and convert them to mp3.
 
 In order to run it, you need to either:
 
-1) Have Node.js, youtube-dl and ffmpeg installed on your OS and run it with:
+1) Have Node.js and youtube-dl on your OS and run the script with:
 
 ```bash
 node youtube-bulk-to-mp3.js

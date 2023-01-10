@@ -1,10 +1,22 @@
 const util = require('util');
 const fs = require('fs');
 const readFile = util.promisify(fs.readFile);
-const unlink = util.promisify(fs.unlink);
 const exec = util.promisify(require('child_process').exec);
+const os = require('os');
 
 class YoutubeBulkToMP3 {
+
+    constructor() {
+        this._binPath = this._getBinPath();
+    }
+
+    _getBinPath() {
+        if (os.platform() === 'darwin') {
+            return '/opt/homebrew/bin'; // Let's assume we are using homebrew
+        } else {
+            return '/usr/bin'; // Linux. If you're using Windows, you can run the Docker image
+        }
+    }
 
     async download(filePath) {
         const links = await this._loadFile(filePath);
@@ -12,8 +24,7 @@ class YoutubeBulkToMP3 {
 
         for (let i = 0; i < links.length; i++) {
             console.log(`Downloading item ${i + 1} of ${links.length}`);
-            const data = await exec(`/usr/bin/youtube-dl -x ${links[i]}`);
-            this._convertToMp3(i, links.length, data.stdout.split('\n'));
+            await exec(`${this._binPath}/youtube-dl --extract-audio --audio-quality 0 --newline --audio-format mp3 ${links[i]}`);
         }
     }
 
@@ -21,38 +32,6 @@ class YoutubeBulkToMP3 {
         const data = await readFile(filePath, 'utf8');
         return data.split(',');
     }
-
-    async _convertToMp3(pos, totalLinks, outputArray) {
-        const fileName = this._getFileName(outputArray);
-
-        if (fileName) {
-            let noExt = fileName.split('.');
-            noExt.pop();
-            noExt = noExt.join('.');
-
-            console.log(`Converting to MP3: ${pos + 1} of ${totalLinks}`);
-            await exec(`/usr/bin/ffmpeg -i "${fileName}" -b:a 192K -vn "${noExt}.mp3"`)
-            await unlink(`${__dirname}/${fileName}`);
-        }
-
-    }
-
-    _getFileName(outputArray) {
-        try {
-            let found = outputArray.find(out => out.indexOf('[ffmpeg] Destination:') !== -1);
-            if (!found) {
-                found = outputArray.find(out => out.indexOf('[download] Destination:') !== -1);
-            }
-            if (found) {
-                return found.split(':')[1].trim();
-            }
-            return null;
-        } catch (err) {
-            console.error(`Error when trying to identify the fileName: `, err);
-            return null;
-        }
-    }
-
 }
 
 const yt2mp3 = new YoutubeBulkToMP3();
